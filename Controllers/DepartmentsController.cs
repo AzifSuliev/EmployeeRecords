@@ -17,41 +17,50 @@ namespace EmployeeRecords.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<Department> Get()
+        public IActionResult Get()
         {
-            return _dbContext.Departments;
+            return Ok(_dbContext.Departments);
         }
 
         [HttpGet("{id}")]
-        public Department Get(int id)
+        public IActionResult Get(int id)
         {
             Department department = _dbContext.Departments.Find(id);
-            return department;
+            return Ok(department);
         }
 
         [HttpPost]
-        public void Post([FromBody] Department department)
+        public IActionResult Post([FromBody] Department department)
         {
             _dbContext.Departments.Add(department);
             _dbContext.SaveChanges();
+            return StatusCode(StatusCodes.Status201Created);
         }
 
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] Department department)
+        public IActionResult Put(int id, [FromBody] Department department)
         {
             Department departmentFromDb = _dbContext.Departments.Find(id);
-
-            departmentFromDb.Name = department.Name;
-            departmentFromDb.ManagerId = department.ManagerId;
-
+            if (departmentFromDb == null) return NotFound();
+            else
+            {
+                departmentFromDb.Name = department.Name;
+                departmentFromDb.ManagerId = department.ManagerId;
+                return Ok("The record has been updated successfully");
+            }
         }
 
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
             Department departmentToBeDeleted = _dbContext.Departments.Find(id);
-            _dbContext.Departments.Remove(departmentToBeDeleted);
-            _dbContext.SaveChanges();
+            if (departmentToBeDeleted == null) return NotFound();
+            else
+            {
+                _dbContext.Departments.Remove(departmentToBeDeleted);
+                _dbContext.SaveChanges();
+                return Ok("The record has been deleted successfully");
+            }
         }
     }
 }

@@ -17,47 +17,58 @@ namespace EmployeeRecords.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<Employee> Get()
+        public IActionResult Get()
         {
-            return _dbContext.Employees;
+            return Ok(_dbContext.Employees);
         }
 
         [HttpGet("{id}")]
-        public Employee Get(int id)
+        public IActionResult Get(int id)
         {
             Employee employee = _dbContext.Employees.FirstOrDefault(e => e.Id == id);
-            return employee;
+            return Ok(employee);
         }
 
         [HttpPost]
-        public void Post([FromBody] Employee employee)
+        public IActionResult Post([FromBody] Employee employee)
         {
             _dbContext.Employees.Add(employee);
             _dbContext.SaveChanges();
+            return StatusCode(StatusCodes.Status201Created);
         }
 
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] Employee employee)
+        public IActionResult Put(int id, [FromBody] Employee employee)
         {
             Employee employeeFromDb = _dbContext.Employees.Find(id);
 
-            employeeFromDb.FirstName = employee.FirstName;
-            employeeFromDb.LastName = employee.LastName;
-            employeeFromDb.Gender = employee.Gender;
-            employeeFromDb.PositionId = employee.PositionId;
-            employeeFromDb.DepartmentId = employee.DepartmentId;
-            employeeFromDb.HireDate = employee.HireDate;
-            employeeFromDb.Salary = employee.Salary;
-            employeeFromDb.EmployeeStatus = employee.EmployeeStatus;
-            _dbContext.SaveChanges();
+            if (employeeFromDb == null) return NotFound();
+            else
+            {
+                employeeFromDb.FirstName = employee.FirstName;
+                employeeFromDb.LastName = employee.LastName;
+                employeeFromDb.Gender = employee.Gender;
+                employeeFromDb.PositionId = employee.PositionId;
+                employeeFromDb.DepartmentId = employee.DepartmentId;
+                employeeFromDb.HireDate = employee.HireDate;
+                employeeFromDb.Salary = employee.Salary;
+                employeeFromDb.EmployeeStatus = employee.EmployeeStatus;
+                _dbContext.SaveChanges();
+                return Ok("The record has been updated successfully");
+            }
         }
 
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
             Employee employeeToBeDeleted = _dbContext.Employees.Find(id);
-            _dbContext.Employees.Remove(employeeToBeDeleted);
-            _dbContext.SaveChanges();
+            if (employeeToBeDeleted == null) return NotFound();
+            else
+            {
+                _dbContext.Employees.Remove(employeeToBeDeleted);
+                _dbContext.SaveChanges();
+                return Ok("The record has been deleted successfully");
+            }
         }
     }
 }

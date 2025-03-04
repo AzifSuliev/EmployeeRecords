@@ -15,42 +15,53 @@ namespace EmployeeRecords.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<Position> Get()
+        public IActionResult Get()
         {
-            return _dbContext.Positions;
+            return Ok(_dbContext.Positions);
         }
 
         [HttpGet("{id}")]
-        public Position Get(int id)
+        public IActionResult Get(int id)
         {
             Position position = _dbContext.Positions.Find(id);
-            return position;
+            return Ok(position);
         }
 
         [HttpPost]
-        public void Post([FromBody] Position position)
+        public IActionResult Post([FromBody] Position position)
         {
             _dbContext.Positions.Add(position);
             _dbContext.SaveChanges();
+            return StatusCode(StatusCodes.Status201Created);
         }
 
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] Position position)
+        public IActionResult Put(int id, [FromBody] Position position)
         {
             Position positionFromDb = _dbContext.Positions.Find(id);
+            if (positionFromDb == null) return NotFound();
+            else
+            {
+                positionFromDb.Title = position.Title;
+                positionFromDb.SalaryRangeMin = position.SalaryRangeMin;
+                positionFromDb.SalaryRangeMax = position.SalaryRangeMax;
+                _dbContext.SaveChanges();
+                return Ok("The record has been updated successfully");
+            }
 
-            positionFromDb.Title = position.Title;
-            positionFromDb.SalaryRangeMin = position.SalaryRangeMin;
-            positionFromDb.SalaryRangeMax = position.SalaryRangeMax;
-            _dbContext.SaveChanges();
         }
 
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
             Position positionToBeDeleted = _dbContext.Positions.Find(id);
-            _dbContext.Positions.Remove(positionToBeDeleted);
-            _dbContext.SaveChanges();
+            if (positionToBeDeleted == null) return NotFound();
+            else
+            {
+                _dbContext.Positions.Remove(positionToBeDeleted);
+                _dbContext.SaveChanges();
+                return Ok("The record has been deleted successfully");
+            }
         }
     }
 }
