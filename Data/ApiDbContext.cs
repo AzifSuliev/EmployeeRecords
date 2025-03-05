@@ -12,7 +12,7 @@ namespace EmployeeRecords.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Employee>()
+            modelBuilder.Entity<Employee>() 
                 .Property(e => e.Gender)
                 .HasConversion<string>();
 

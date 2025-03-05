@@ -1,6 +1,7 @@
 ﻿using EmployeeRecords.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmployeeRecords.Controllers
 {
@@ -15,51 +16,52 @@ namespace EmployeeRecords.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            return Ok(_dbContext.Positions);
+            return Ok(await _dbContext.Positions.ToListAsync());
         }
 
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            Position position = _dbContext.Positions.Find(id);
+            Position position = await _dbContext.Positions.FindAsync(id);
+            if(position == null) return NotFound("No record has been found against this ID"); 
             return Ok(position);
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] Position position)
+        public async Task<IActionResult> Post([FromBody] Position position)
         {
-            _dbContext.Positions.Add(position);
-            _dbContext.SaveChanges();
+            await _dbContext.Positions.AddAsync(position);
+            await _dbContext.SaveChangesAsync();
             return StatusCode(StatusCodes.Status201Created);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] Position position)
+        public async Task<IActionResult> Put(int id, [FromBody] Position position)
         {
-            Position positionFromDb = _dbContext.Positions.Find(id);
-            if (positionFromDb == null) return NotFound();
+            Position positionFromDb = await _dbContext.Positions.FindAsync(id);
+            if (positionFromDb == null) return NotFound("No record has been found against this ID");
             else
             {
                 positionFromDb.Title = position.Title;
                 positionFromDb.SalaryRangeMin = position.SalaryRangeMin;
                 positionFromDb.SalaryRangeMax = position.SalaryRangeMax;
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
                 return Ok("The record has been updated successfully");
             }
 
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            Position positionToBeDeleted = _dbContext.Positions.Find(id);
-            if (positionToBeDeleted == null) return NotFound();
+            Position positionToBeDeleted = await _dbContext.Positions.FindAsync(id);
+            if (positionToBeDeleted == null) return NotFound("No record has been found against this ID");
             else
             {
                 _dbContext.Positions.Remove(positionToBeDeleted);
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
                 return Ok("The record has been deleted successfully");
             }
         }

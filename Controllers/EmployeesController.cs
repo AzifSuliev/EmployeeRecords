@@ -2,6 +2,7 @@
 using EmployeeRecords.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmployeeRecords.Controllers
 {
@@ -17,32 +18,33 @@ namespace EmployeeRecords.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            return Ok(_dbContext.Employees);
+            return Ok(await _dbContext.Employees.ToListAsync());
         }
 
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            Employee employee = _dbContext.Employees.FirstOrDefault(e => e.Id == id);
+            Employee employee = await _dbContext.Employees.FindAsync(id);
+            if (employee == null) return NotFound("No record has been found against this ID");
             return Ok(employee);
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] Employee employee)
+        public async Task<IActionResult> Post([FromBody] Employee employee)
         {
-            _dbContext.Employees.Add(employee);
-            _dbContext.SaveChanges();
+            await _dbContext.Employees.AddAsync(employee);
+            await _dbContext.SaveChangesAsync();
             return StatusCode(StatusCodes.Status201Created);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] Employee employee)
+        public async Task<IActionResult> Put(int id, [FromBody] Employee employee)
         {
-            Employee employeeFromDb = _dbContext.Employees.Find(id);
+            Employee employeeFromDb = await _dbContext.Employees.FindAsync(id);
 
-            if (employeeFromDb == null) return NotFound();
+            if (employeeFromDb == null) return NotFound("No record has been found against this ID");
             else
             {
                 employeeFromDb.FirstName = employee.FirstName;
@@ -53,20 +55,20 @@ namespace EmployeeRecords.Controllers
                 employeeFromDb.HireDate = employee.HireDate;
                 employeeFromDb.Salary = employee.Salary;
                 employeeFromDb.EmployeeStatus = employee.EmployeeStatus;
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
                 return Ok("The record has been updated successfully");
             }
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            Employee employeeToBeDeleted = _dbContext.Employees.Find(id);
-            if (employeeToBeDeleted == null) return NotFound();
+            Employee employeeToBeDeleted = await _dbContext.Employees.FindAsync(id);
+            if (employeeToBeDeleted == null) return NotFound("No record has been found against this ID");
             else
             {
                 _dbContext.Employees.Remove(employeeToBeDeleted);
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
                 return Ok("The record has been deleted successfully");
             }
         }

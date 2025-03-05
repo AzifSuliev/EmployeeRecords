@@ -2,6 +2,7 @@
 using EmployeeRecords.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Runtime.CompilerServices;
 
 namespace EmployeeRecords.Controllers
@@ -17,48 +18,50 @@ namespace EmployeeRecords.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            return Ok(_dbContext.Departments);
+            return Ok(await _dbContext.Departments.ToListAsync());
         }
 
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            Department department = _dbContext.Departments.Find(id);
+            Department department = await _dbContext.Departments.FindAsync(id);
+            if (department == null) return NotFound("No record has been found against this ID");
             return Ok(department);
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] Department department)
+        public async Task<IActionResult> Post([FromBody] Department department)
         {
-            _dbContext.Departments.Add(department);
-            _dbContext.SaveChanges();
+            await _dbContext.Departments.AddAsync(department);
+            await _dbContext.SaveChangesAsync();
             return StatusCode(StatusCodes.Status201Created);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] Department department)
+        public async Task<IActionResult> Put(int id, [FromBody] Department department)
         {
-            Department departmentFromDb = _dbContext.Departments.Find(id);
-            if (departmentFromDb == null) return NotFound();
+            Department departmentFromDb = await _dbContext.Departments.FindAsync(id);
+            if (departmentFromDb == null) return NotFound("No record has been found against this ID");
             else
             {
                 departmentFromDb.Name = department.Name;
                 departmentFromDb.ManagerId = department.ManagerId;
+                await _dbContext.SaveChangesAsync();
                 return Ok("The record has been updated successfully");
             }
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            Department departmentToBeDeleted = _dbContext.Departments.Find(id);
-            if (departmentToBeDeleted == null) return NotFound();
+            Department departmentToBeDeleted = await _dbContext.Departments.FindAsync(id);
+            if (departmentToBeDeleted == null) return NotFound("No record has been found against this ID");
             else
             {
                 _dbContext.Departments.Remove(departmentToBeDeleted);
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
                 return Ok("The record has been deleted successfully");
             }
         }
